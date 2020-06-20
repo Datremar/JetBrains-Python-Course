@@ -1,12 +1,10 @@
-nums = '1234567890'
+class Book:
+    def __init__(self, author, title, price, book_id):
+        self.author = author
+        self.title = title
+        self.price = price
+        self.book_id = book_id
 
-
-
-cords = []
-x, y = -1, -1
-
-cords = input('Enter the coordinates: ').lstrip('> ').split()
-
-if not all([el in nums for el in cords]):
-    print('You should enter numbers!')
-    exit(0)
+    # define the necessary method here
+    def __str__(self):
+        return f'{self.title} by {self.author}. ${self.price}. [{self.book_id}]'
