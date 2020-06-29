@@ -9,10 +9,15 @@ class Cell:
 
 
 class Grid:
+
     def __init__(self):
-        self.cells = [[Cell(0, 0, 'O'), Cell(1, 0, 'O'), Cell(2, 0, 'X')],
-                      [Cell(0, 1, ' '), Cell(1, 1, ' '), Cell(2, 1, 'X')],
-                      [Cell(0, 2, ' '), Cell(1, 2, 'X'), Cell(2, 2, ' ')]]
+        self.cells = [[Cell(0, 0, 'X'), Cell(1, 0, 'O'), Cell(2, 0, 'O')],
+                      [Cell(0, 1, 'X'), Cell(1, 1, ' '), Cell(2, 1, ' ')],
+                      [Cell(0, 2, 'O'), Cell(1, 2, ' '), Cell(2, 2, 'X')]]
+        self.free_cells = [(cell.x, cell.y) for row in self.cells for cell in row if cell.sign == ' ']
+
+    def copy(self, grid):
+        self.cells = [[Cell(cell.x, cell.y, cell.sign) for cell in row] for row in grid.cells]
         self.free_cells = [(cell.x, cell.y) for row in self.cells for cell in row if cell.sign == ' ']
 
     def check_cell(self, x, y, sign):
@@ -26,6 +31,9 @@ class Grid:
                 #     print('OCCUPIED!')
                 #     exit(1)
 
+    def get_free_cells_num(self):
+        return len(self.free_cells)
+
     def get_cell_sign(self, x, y):
         for row in self.cells:
             for cell in row:
@@ -38,10 +46,6 @@ class Grid:
 
     def shuffle_free_cells(self):
         rnd.shuffle(self.free_cells)
-
-    def copy(self, grid):
-        self.cells = [[Cell(cell.x, cell.y, cell.sign) for cell in row] for row in grid.cells]
-        self.free_cells = [(cell.x, cell.y) for row in self.cells for cell in row if cell.sign == ' ']
 
     def show(self):
         print('---------\n'
@@ -74,23 +78,26 @@ def win_check(cells):
 
 
 def score(grid, depth):
-    if win_check(grid.cells)[0]:
+    results = win_check(grid.cells)
+
+    if results[0]:
         return 10 - depth
-    elif win_check(grid.cells)[1]:
+    elif results[1]:
         return depth - 10
-    else:
+    elif results[2]:
         return 0
 
 
 def minimax(grid, depth, x_turn):
 
     grid.show()
+    print(f"Is it x's turn: {x_turn}")
 
-    if any(win_check(grid.cells)) or depth == 0:
-        print(win_check(grid.cells))
-        points = score(grid, depth)
-        print(points)
-        return points, None
+    if depth == 0 or any(win_check(grid.cells)):
+
+        print(f'Final score on a branch {score(grid, depth)}')
+
+        return score(grid, depth), (None, None)
 
     scores = []
     moves = []
@@ -98,12 +105,14 @@ def minimax(grid, depth, x_turn):
     for cell in grid.free_cells:
         possible_grid = Grid()
         possible_grid.copy(grid)
-        sign = 'X' if x_turn else 'O'
 
-        possible_grid.check_cell(cell[0], cell[1], sign)
-
-        scores.append(minimax(possible_grid, depth - 1, not x_turn)[0])
+        possible_grid.check_cell(cell[0], cell[1], 'X' if x_turn else 'O')
         moves.append(cell)
+        scores.append(minimax(possible_grid, depth - 1, not x_turn)[0])
+
+    print(f'Depth: {depth}')
+    print(f'Scores: {scores}')
+    print(f'Moves: {moves}')
 
     if x_turn:
         max_index = scores.index(max(scores))
@@ -113,9 +122,12 @@ def minimax(grid, depth, x_turn):
         return scores[min_index], moves[min_index]
 
 
+move_ = (None, None)
+
 grid_ = Grid()
+grid_.show()
 
-result = minimax(grid_, 4, True)
+print(minimax(grid_, 9, True))
 
-print()
-print(result[1])
+grid_.show()
+
